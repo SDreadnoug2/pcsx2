@@ -873,27 +873,6 @@ void MainWindow::saveStateToConfig()
 		changed = true;
 	}
 
-	if (Host::ContainsBaseSettingValue("UI", "MainWindowMode"))
-	{
-		const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
-		int currentSizing = 0;
-		if (isFullScreen())
-		{
-
-			currentSizing = 2;
-		}
-		else if (isMaximized())
-		{
-			currentSizing = 1;
-		}
-		if (sizing != currentSizing)
-		{
-			Host::SetBaseIntSettingValue("UI", "MainWindowMode", currentSizing);
-			changed = true;
-		}
-	}
-	if (changed)
-		Host::CommitBaseSettingChanges();
 }
 
 void MainWindow::restoreStateFromConfig()
@@ -926,30 +905,34 @@ void MainWindow::restoreStateFromConfig()
 		{
 			const bool oldMax = Host::GetBaseBoolSettingValue("UI", "MainWindowMaximized", false);
 			const bool oldFull = Host::GetBaseBoolSettingValue("UI", "MainWindowFullscreen", false);
+			MainWindow::MainWindowModes migratedMode = MainWindow::MainWindowModes::windowed;
 			if (oldMax)
 			{
-				Host::SetBaseIntSettingValue("UI", "MainWindowMode", 1);
-				Host::RemoveBaseSettingValue("UI", "MainWindowMaximized");
+				migratedMode = MainWindow::MainWindowModes::maximized;
+				
 			}
-			if (oldFull)
+			else if (oldFull)
 			{
-				Host::SetBaseIntSettingValue("UI", "MainWindowMode", 2);
-				Host::RemoveBaseSettingValue("UI", "MainWindowFullscreen");
+				migratedMode = MainWindowModes::fullscreen;
 			}
+			const char* newMode = InterfaceSettingsWidget::MAIN_WINDOW_MODES[static_cast<int>(migratedMode)];
+			Host::SetBaseStringSettingValue("UI", "MainWindowMode", newMode);
+			Host::RemoveBaseSettingValue("UI", "MainWindowMaximized");
+			Host::RemoveBaseSettingValue("UI", "MainWindowFullscreen");
 		}
 
 		if (Host::ContainsBaseSettingValue("UI", "MainWindowMode"))
 		{
-			const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
-			if (sizing == 0)
+			const std::string sizing = Host::GetBaseStringSettingValue("UI", "MainWindowMode");
+			if (sizing == InterfaceSettingsWidget::MAIN_WINDOW_MODES[static_cast<int>(MainWindow::MainWindowModes::windowed)])
 			{
 				showNormal();
 			}
-			if (sizing == 1)
+			if (sizing == InterfaceSettingsWidget::MAIN_WINDOW_MODES[static_cast<int>(MainWindow::MainWindowModes::maximized)])
 			{
 				showMaximized();
 			}
-			if (sizing == 2)
+			if (sizing == InterfaceSettingsWidget::MAIN_WINDOW_MODES[static_cast<int>(MainWindow::MainWindowModes::fullscreen)])
 			{
 				showFullScreen();
 			}
@@ -2022,28 +2005,6 @@ void MainWindow::onLanguageChanged()
 	});
 }
 
-void MainWindow::onMainWindowTypeChanged()
-{
-	const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
-	if (sizing == 0)
-	{
-		showNormal();
-	}
-	if (sizing == 1)
-	{
-		showMaximized();
-	}
-	if (sizing == 2)
-	{
-		showFullScreen();
-
-	}
-	QtHost::RunOnUIThread([] {
-		g_main_window->doSettings("Interface");
-	});
-};
-
-
 void MainWindow::onInputRecNewActionTriggered()
 {
 	const bool wasPaused = s_vm_paused;
@@ -2953,7 +2914,6 @@ SettingsWindow* MainWindow::getSettingsWindow()
 			g_main_window->m_game_list_widget->refreshGridCovers();
 			Host::RunOnGSThread([] { FullscreenUI::PreferEnglishGameListChanged(); });
 		});
-		connect(m_settings_window->getInterfaceSettingsWidget(), &InterfaceSettingsWidget::mainWindowTypeChanged, this, &MainWindow::onMainWindowTypeChanged);
 	}
 
 	return m_settings_window;

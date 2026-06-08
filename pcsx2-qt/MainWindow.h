@@ -113,6 +113,13 @@ public:
 
 	void openDebugger();
 	void checkMousePosition(int x, int y);
+
+	enum class MainWindowModes
+	{
+		windowed = 0,
+		maximized = 1,
+		fullscreen = 2,
+	};
 public Q_SLOTS:
 	void checkForUpdates(bool display_message, bool force_check);
 	void refreshGameList(bool invalidate_cache, bool popup_on_error);
@@ -185,7 +192,6 @@ private Q_SLOTS:
 	void updateLanguage();
 	void onThemeChanged();
 	void onLanguageChanged();
-	void onMainWindowTypeChanged();
 	void onScreenshotActionTriggered();
 	void onSaveGSDumpActionTriggered();
 	void onBlockDumpActionToggled(bool checked);

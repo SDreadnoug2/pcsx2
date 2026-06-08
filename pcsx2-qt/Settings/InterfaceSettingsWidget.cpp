@@ -86,6 +86,12 @@ const char* InterfaceSettingsWidget::BACKGROUND_SCALE_NAMES[] = {
 const char* InterfaceSettingsWidget::IMAGE_FILE_FILTER = QT_TRANSLATE_NOOP("InterfaceSettingsWidget",
 	"Supported Image Types (*.bmp *.gif *.jpg *.jpeg *.png *.webp)");
 
+const char* InterfaceSettingsWidget::MAIN_WINDOW_MODES[] = {
+	"windowed", 
+	"maximized", 
+	"fullscreen", 
+	nullptr};
+
 InterfaceSettingsWidget::InterfaceSettingsWidget(SettingsWindow* settings_dialog, QWidget* parent)
 	: SettingsWidget(settings_dialog, parent)
 {
@@ -148,7 +154,7 @@ InterfaceSettingsWidget::InterfaceSettingsWidget(SettingsWindow* settings_dialog
 	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.language, "UI", "Language", QtHost::GetDefaultLanguage());
 	connect(m_ui.language, &QComboBox::currentIndexChanged, [this]() { emit languageChanged(); });
 
-	SettingWidgetBinder::BindWidgetToIntSetting(sif, m_ui.mainWindowMode, "UI", "MainWindowMode", 0);
+	SettingWidgetBinder::BindWidgetToEnumSetting(sif, m_ui.mainWindowMode, "UI", "MainWindowMode", MAIN_WINDOW_MODES, MainWindow::MainWindowModes::windowed);
 	connect(m_ui.mainWindowMode, &QComboBox::currentIndexChanged, [this]() { emit mainWindowTypeChanged(); });
 
 	// Per-game settings is special, we don't want to bind it if we're editing per-game settings.
