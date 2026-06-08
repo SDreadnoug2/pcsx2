@@ -922,6 +922,22 @@ void MainWindow::restoreStateFromConfig()
 	}
 
 	{
+		if (Host::ContainsBaseSettingValue("UI", "MainWindowMaximized") || Host::ContainsBaseSettingValue("UI", "MainWindowFullscreen"))
+		{
+			const bool oldMax = Host::GetBaseBoolSettingValue("UI", "MainWindowMaximized", false);
+			const bool oldFull = Host::GetBaseBoolSettingValue("UI", "MainWindowFullscreen", false);
+			if (oldMax)
+			{
+				Host::SetBaseIntSettingValue("UI", "MainWindowMode", 1);
+				Host::RemoveBaseSettingValue("UI", "MainWindowMaximized");
+			}
+			if (oldFull)
+			{
+				Host::SetBaseIntSettingValue("UI", "MainWindowMode", 2);
+				Host::RemoveBaseSettingValue("UI", "MainWindowFullscreen");
+			}
+		}
+
 		if (Host::ContainsBaseSettingValue("UI", "MainWindowMode"))
 		{
 			const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
