@@ -873,26 +873,25 @@ void MainWindow::saveStateToConfig()
 		changed = true;
 	}
 
-	if (Host::ContainsBaseSettingValue("UI", "MainWindowMaximized"))
+	if (Host::ContainsBaseSettingValue("UI", "MainWindowMode"))
 	{
-		const bool maximized = Host::GetBaseBoolSettingValue("UI", "MainWindowMaximized");
-		if (maximized != isMaximized())
+		const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
+		int currentSizing = 0;
+		if (isFullScreen())
 		{
-			Host::SetBaseBoolSettingValue("UI", "MainWindowMaximized", isMaximized());
+
+			currentSizing = 2;
+		}
+		else if (isMaximized())
+		{
+			currentSizing = 1;
+		}
+		if (sizing != currentSizing)
+		{
+			Host::SetBaseIntSettingValue("UI", "MainWindowMode", currentSizing);
 			changed = true;
 		}
 	}
-
-	if (Host::ContainsBaseSettingValue("UI", "MainWindowFullscreen"))
-	{
-		const bool fullscreen = Host::GetBaseBoolSettingValue("UI", "MainWindowFullscreen");
-		if (fullscreen != isFullScreen())
-		{
-			Host::SetBaseBoolSettingValue("UI", "MainWindowFullscreen", isFullScreen());
-			changed = true;
-		}
-	}
-
 	if (changed)
 		Host::CommitBaseSettingChanges();
 }
@@ -923,20 +922,21 @@ void MainWindow::restoreStateFromConfig()
 	}
 
 	{
-		if (Host::ContainsBaseSettingValue("UI", "MainWindowMaximized"))
+		if (Host::ContainsBaseSettingValue("UI", "MainWindowMode"))
 		{
-			const bool maximized = Host::GetBaseBoolSettingValue("UI", "MainWindowMaximized");
-			if (maximized)
+			const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
+			if (sizing == 0)
+			{
+				showNormal();
+			}
+			if (sizing == 1)
+			{
 				showMaximized();
-		}
-	}
-
-	{
-		if (Host::ContainsBaseSettingValue("UI", "MainWindowFullscreen"))
-		{
-			const bool fullscreen = Host::GetBaseBoolSettingValue("UI", "MainWindowFullscreen");
-			if (fullscreen)
+			}
+			if (sizing == 2)
+			{
 				showFullScreen();
+			}
 		}
 	}
 }
@@ -2006,6 +2006,28 @@ void MainWindow::onLanguageChanged()
 	});
 }
 
+void MainWindow::onMainWindowTypeChanged()
+{
+	const int sizing = Host::GetBaseIntSettingValue("UI", "MainWindowMode");
+	if (sizing == 0)
+	{
+		showNormal();
+	}
+	if (sizing == 1)
+	{
+		showMaximized();
+	}
+	if (sizing == 2)
+	{
+		showFullScreen();
+
+	}
+	QtHost::RunOnUIThread([] {
+		g_main_window->doSettings("Interface");
+	});
+};
+
+
 void MainWindow::onInputRecNewActionTriggered()
 {
 	const bool wasPaused = s_vm_paused;
@@ -2915,6 +2937,7 @@ SettingsWindow* MainWindow::getSettingsWindow()
 			g_main_window->m_game_list_widget->refreshGridCovers();
 			Host::RunOnGSThread([] { FullscreenUI::PreferEnglishGameListChanged(); });
 		});
+		connect(m_settings_window->getInterfaceSettingsWidget(), &InterfaceSettingsWidget::mainWindowTypeChanged, this, &MainWindow::onMainWindowTypeChanged);
 	}
 
 	return m_settings_window;

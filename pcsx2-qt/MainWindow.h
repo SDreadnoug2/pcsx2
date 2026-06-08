@@ -185,6 +185,7 @@ private Q_SLOTS:
 	void updateLanguage();
 	void onThemeChanged();
 	void onLanguageChanged();
+	void onMainWindowTypeChanged();
 	void onScreenshotActionTriggered();
 	void onSaveGSDumpActionTriggered();
 	void onBlockDumpActionToggled(bool checked);

@@ -148,6 +148,9 @@ InterfaceSettingsWidget::InterfaceSettingsWidget(SettingsWindow* settings_dialog
 	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.language, "UI", "Language", QtHost::GetDefaultLanguage());
 	connect(m_ui.language, &QComboBox::currentIndexChanged, [this]() { emit languageChanged(); });
 
+	SettingWidgetBinder::BindWidgetToIntSetting(sif, m_ui.mainWindowMode, "UI", "MainWindowMode", 0);
+	connect(m_ui.mainWindowMode, &QComboBox::currentIndexChanged, [this]() { emit mainWindowTypeChanged(); });
+
 	// Per-game settings is special, we don't want to bind it if we're editing per-game settings.
 	if (!dialog()->isPerGameSettings())
 	{
